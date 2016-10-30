@@ -40,4 +40,6 @@ PACKAGES       = braids/bootloader braids/drivers stmlib/utils stmlib/system \
 		stm_audio_bootloader/qpsk
 RESOURCES      = braids/resources
 
+PROJECT_CONFIGURATION = -DBRAIDS_BOOTLOADER
+
 include stmlib/makefile.inc

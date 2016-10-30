@@ -71,11 +71,15 @@ void Display::Refresh() {
     GPIOB->BRR = kCharacterEnablePins[active_position_];
     active_position_ = (active_position_ + 1) % kDisplayWidth;
     char_index_ = static_cast<uint8_t>(buffer_[active_position_]);
+#ifdef BRAIDS_BOOTLOADER
+    Shift14SegmentsWord(chr_characters[char_index_]);
+#else
     if (char_index_ < 33 || char_index_ > 151) {
        Shift14SegmentsWord(0);
     } else if (char_index_ >= 33 && char_index_ < 152) {
        Shift14SegmentsWord(chr_characters[char_index_ - 33]);
     }
+#endif
     GPIOB->BSRR = kCharacterEnablePins[active_position_];
   } else {
     GPIOB->BRR = kCharacterEnablePins[active_position_];
