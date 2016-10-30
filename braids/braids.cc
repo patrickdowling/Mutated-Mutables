@@ -46,6 +46,8 @@
 #include "braids/vco_jitter_source.h"
 #include "braids/ui.h"
 
+#include "braids/preset_storage.h"
+
 using namespace braids;
 using namespace std;
 using namespace stmlib;
@@ -148,6 +150,7 @@ void TIM1_UP_IRQHandler(void) {
 void Init() {
   sys.Init(F_CPU / 96000 - 1, true);
   settings.Init();
+  preset_storage.Init();
   ui.Init();
   system_clock.Init();
   adc.Init(false);

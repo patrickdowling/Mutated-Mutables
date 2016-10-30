@@ -31,6 +31,7 @@
 // Settings
 
 #include "braids/settings.h"
+#include "braids/preset_storage.h"
 
 #include <cstring>
 
@@ -130,14 +131,19 @@ const SettingsData kInitSettings = {
   50,                   // pitch_cv_offset
   15401,                // pitch_cv_scale
   2048,                 // fm_cv_offset
+  'B'
 };
 
-Storage<0x8020000, 4> storage;
+Storage<0x8020000, 3> storage;
 
 void Settings::Init() {
-  if (!storage.ParsimoniousLoad(&data_, &version_token_)) {
+  if (!storage.ParsimoniousLoad(&data_, &version_token_) ||
+      !ValidateSettings()) {
     Reset(false);
   }
+}
+
+bool Settings::ValidateSettings() const {
   bool settings_within_range = true;
   for (int32_t i = 0; i <= SETTING_LAST_EDITABLE_SETTING; ++i) {
     const Setting setting = static_cast<Setting>(i);
@@ -147,10 +153,9 @@ void Settings::Init() {
         value >= setting_metadata.min_value && \
         value <= setting_metadata.max_value;
   }
+
   settings_within_range = settings_within_range && data_.magic_byte == 'B';
-  if (!settings_within_range) {
-    Reset(false);
-  }  
+  return settings_within_range;
 }
 
 void Settings::Reset(bool except_cal_data) {
@@ -171,6 +176,31 @@ void Settings::Reset(bool except_cal_data) {
 void Settings::Save() {
   data_.magic_byte = 'B';
   storage.ParsimoniousSave(data_, &version_token_);
+}
+
+void Settings::SavePreset(uint16_t preset_slot) {
+  preset_storage.Save(preset_slot, &data_, "\0\0\0\0");
+}
+
+void Settings::LoadPreset(uint16_t preset_slot, bool load_calibration) {
+  preset_storage.Load(preset_slot, &data_, load_calibration);
+    
+  if (!ValidateSettings()) {
+    Reset(!load_calibration);
+  }
+}
+
+void Settings::LoadSaved(bool load_calibration) {
+  const int32_t pitch_cv_offset = data_.pitch_cv_offset;
+  const int32_t pitch_cv_scale = data_.pitch_cv_scale;
+  const int32_t fm_cv_offset = data_.fm_cv_offset;
+
+  Init();
+  if (!load_calibration) {
+    data_.pitch_cv_offset = pitch_cv_offset;
+    data_.pitch_cv_scale = pitch_cv_scale;
+    data_.fm_cv_offset = fm_cv_offset;
+  }
 }
 
 const char* const boolean_values[] = { "OFF ", "ON  " };
@@ -694,11 +724,13 @@ const SettingMetadata Settings::metadata_[] = {
   { 0, 0, "CAL.", NULL },
   { 0, 0, "    ", NULL },  // Placeholder for CV tester
   { 0, 0, "v4.1", NULL },  // Placeholder for version string
+  { 0, 0, "LOAD", NULL },  // Placeholder for preset loading
 };
 
 /* static */
 const Setting Settings::settings_order_[] = {
   SETTING_OSCILLATOR_SHAPE,
+  SETTING_LOAD_PRESET,
   SETTING_INITIAL_GAIN,
   SETTING_META_MODULATION,
   SETTING_MOD1_MODE,

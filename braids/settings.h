@@ -249,7 +249,8 @@ enum Setting {
   SETTING_CALIBRATION,
   SETTING_CV_TESTER,
   SETTING_VERSION,
-  SETTING_LAST,
+  SETTING_LOAD_PRESET,
+  SETTING_LAST
 };
 
 struct SettingsData {
@@ -376,8 +377,12 @@ class Settings {
   
   void Init();
   void Save();
+
   void Reset(bool except_cal_data);
-  
+  void SavePreset(uint16_t preset_slot);
+  void LoadPreset(uint16_t preset_slot, bool load_calibration);
+  void LoadSaved(bool load_calibration);
+
   void SetValue(Setting setting, uint8_t value) {
     uint8_t* data = static_cast<uint8_t*>(static_cast<void*>(&data_));
     data[setting] = value;
@@ -544,6 +549,7 @@ class Settings {
   }
   
  private:
+  bool ValidateSettings() const;
 
   SettingsData data_;
   
@@ -556,7 +562,7 @@ class Settings {
 };
 
 extern Settings settings;
-
+extern const SettingsData kInitSettings;
 }  // namespace braids
 
 #endif  // BRAIDS_SETTINGS_H_
