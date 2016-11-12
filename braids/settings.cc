@@ -43,6 +43,8 @@ namespace braids {
 
 using namespace stmlib;
 
+static const uint8_t kMagicByte = 'b'; // 'M' == mutable, 'B' original BitT
+
 const SettingsData kInitSettings = {
   MACRO_OSC_SHAPE_CSAW, // shape
   RESOLUTION_16_BIT,    // resolution
@@ -101,7 +103,6 @@ const SettingsData kInitSettings = {
   1,                    // metaseq_step_length8
   SAMPLE_RATE_96K,      // sample_rate
   0,                    // metaseq_direction
-  0,                    // reset_type
   false,                // pitch_sample_hold
   31,                   // metaseq_note1
   31,                   // metaseq_note2
@@ -127,11 +128,11 @@ const SettingsData kInitSettings = {
   0,                    // turing_init
   0,                    // musical_scale
   false,                // edit wrap
-  0,                    // padding
+  { 0, 0 },             // padding
   50,                   // pitch_cv_offset
   15401,                // pitch_cv_scale
   2048,                 // fm_cv_offset
-  'B'
+  kMagicByte
 };
 
 Storage<0x8020000, 3> storage;
@@ -154,7 +155,7 @@ bool Settings::ValidateSettings() const {
         value <= setting_metadata.max_value;
   }
 
-  settings_within_range = settings_within_range && data_.magic_byte == 'B';
+  settings_within_range = settings_within_range && data_.magic_byte == kMagicByte;
   return settings_within_range;
 }
 
@@ -170,11 +171,11 @@ void Settings::Reset(bool except_cal_data) {
   } else {
      memcpy(&data_, &kInitSettings, sizeof(SettingsData));
   }
-  data_.magic_byte = 'B';
+  data_.magic_byte = kMagicByte;
 }
 
 void Settings::Save() {
-  data_.magic_byte = 'B';
+  data_.magic_byte = kMagicByte;
   storage.ParsimoniousSave(data_, &version_token_);
 }
 
@@ -589,13 +590,6 @@ const char* const metaseq_dir_values[] = {
     "RNDM", // 2
 };
 
-const char* const reset_type_values[] = {
-    "NO", // 0
-    "DFLT", // 1
-    "NO", // 2
-    "FULL", // 3
-};
-
 const char* const metaseq_parameter_dest_values[] = {
     "NONE", // 0
     "TIMB", // 1
@@ -695,7 +689,6 @@ const SettingMetadata Settings::metadata_[] = {
   { 1, 127, "RPT8", mod_rate_values },
   { 0, SAMPLE_RATE_LAST - 1, "SRAT", sample_rate_values },  
   { 0, 2, "MDIR", metaseq_dir_values },
-  { 0, 3, "RST ", reset_type_values },
   { 0, 1, "FS+H", boolean_values },
   { 0, 62, "NOT1", bipolar_values },
   { 0, 62, "NOT2", bipolar_values },
@@ -813,7 +806,6 @@ const Setting Settings::settings_order_[] = {
   SETTING_TURING_PROB,
   SETTING_TURING_INIT,
   SETTING_TURING_CLOCK_DIV,
-  SETTING_RESET_TYPE,
   SETTING_FINE_TUNE,
   SETTING_PITCH_OCTAVE,
 };

@@ -217,7 +217,6 @@ enum Setting {
   SETTING_METASEQ_STEP_LENGTH8, 
   SETTING_SAMPLE_RATE,
   SETTING_METASEQ_DIRECTION,
-  SETTING_RESET_TYPE,
   SETTING_PITCH_SAMPLE_HOLD,
   SETTING_METASEQ_NOTE1, 
   SETTING_METASEQ_NOTE2, 
@@ -311,7 +310,6 @@ struct SettingsData {
   uint8_t metaseq_step_length8;
   uint8_t sample_rate;  
   uint8_t metaseq_direction;
-  uint8_t reset_type;
   uint8_t pitch_sample_hold;
   uint8_t metaseq_note1;
   uint8_t metaseq_note2;
@@ -337,7 +335,7 @@ struct SettingsData {
   uint8_t turing_init;
   uint8_t musical_scale;
   uint8_t edit_wrap;
-  uint8_t extra_padding;
+  uint8_t extra_padding[2];
   int32_t pitch_cv_offset; 
   int32_t pitch_cv_scale; 
   int32_t fm_cv_offset; 
